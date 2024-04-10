@@ -62,9 +62,11 @@ public:
 
 protected:
 	/** Ends gameplay for this component. */
-	UFUNCTION()
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
+	
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
+		FActorComponentTickFunction* ThisTickFunction) override;
+	
 private:
 	/** The Character holding this weapon*/
 	AMechanicsTestCharacter* Character;

@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent(){
@@ -17,8 +18,9 @@ UTP_WeaponComponent::UTP_WeaponComponent(){
 	HookDistance = 3000.0;
 }
 
+
 void UTP_WeaponComponent::Fire(){
-	if (Character == nullptr || Character->GetController() == nullptr){
+	if (Character == nullptr || Character->GetController() == nullptr || !Character->GetCanGrap()){
 		return;
 	}
 
@@ -31,10 +33,11 @@ void UTP_WeaponComponent::Fire(){
 		bool actorHit = GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Pawn);
 
 		if(actorHit) {
+			Character->SetIsGrapping(true);
+			Character->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 			GrabPoint = hit.Location;
 			DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 4.f, 0.f, 1.f);
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *hit.GetActor()->GetName());
-			
 		}
 	}
 	
@@ -53,8 +56,10 @@ void UTP_WeaponComponent::Fire(){
 	}
 }
 
+
 void UTP_WeaponComponent::ReleaseFire() {
 	Character->SetIsGrapping(false);
+	Character->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 }
 
 
@@ -74,18 +79,35 @@ void UTP_WeaponComponent::AttachWeapon(AMechanicsTestCharacter* TargetCharacter)
 
 	// Set up action bindings
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController())){
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())){
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())){
+			
 			// Set the priority of the mapping to 1, so that it overrides the Jump action with the Fire action when using touch input
 			Subsystem->AddMappingContext(FireMappingContext, 1);
 		}
 
-		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent)){
+		if (UEnhancedInputComponent* EnhancedInputComponent =
+			Cast<UEnhancedInputComponent>(PlayerController->InputComponent)){
+			
 			// Fire
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UTP_WeaponComponent::Fire);
-			EnhancedInputComponent->BindAction(ReleaseFireAction, ETriggerEvent::Completed, this, &UTP_WeaponComponent::ReleaseFire);
+			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered,
+				this, &UTP_WeaponComponent::Fire);
+			EnhancedInputComponent->BindAction(ReleaseFireAction, ETriggerEvent::Completed,
+				this, &UTP_WeaponComponent::ReleaseFire);
 		}
 	}
 }
+
+
+void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType,
+	FActorComponentTickFunction* ThisTickFunction) {
+	
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if(Character->GetIsGrapping()) {
+		
+	}
+}
+
 
 void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason){
 	if (Character == nullptr){
@@ -93,7 +115,9 @@ void UTP_WeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason){
 	}
 
 	if (APlayerController* PlayerController = Cast<APlayerController>(Character->GetController())){
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())){
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())){
+			
 			Subsystem->RemoveMappingContext(FireMappingContext);
 		}
 	}
