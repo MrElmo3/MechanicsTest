@@ -43,22 +43,20 @@ class AMechanicsTestCharacter : public ACharacter{
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 	
-public:
-
+private:
 	/** Is Grap? */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Grap")
+	UPROPERTY()
 	bool bIsGrapping;
 	
 	/** Can Grap? */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Grap")
+	UPROPERTY()
 	bool bCanGrap;
-
+	
 	/** Bool for AnimBP to switch to another animation set */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
+	UPROPERTY()
 	bool bHasRifle;
 
 public:
-	
 	AMechanicsTestCharacter();
 
 protected:

@@ -11,8 +11,8 @@
 //////////////////////////////////////////////////////////////////////////
 // AMechanicsTestCharacter
 
-AMechanicsTestCharacter::AMechanicsTestCharacter()
-{
+AMechanicsTestCharacter::AMechanicsTestCharacter(){
+	
 	// Character doesnt have a rifle at start
 	bHasRifle = false;
 	
@@ -34,6 +34,9 @@ AMechanicsTestCharacter::AMechanicsTestCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
+	bCanGrap = false;
+	bIsGrapping = false;
+	
 }
 
 void AMechanicsTestCharacter::BeginPlay()

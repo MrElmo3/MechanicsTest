@@ -9,11 +9,22 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
+#include "CableComponent.h"
+#include "ToolBuilderUtil.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values for this component's properties
 UTP_WeaponComponent::UTP_WeaponComponent(){
 	// Default offset from the character location for projectiles to spawn
+
+	CableComponent = CreateDefaultSubobject<UCableComponent>(TEXT("Cable"));
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	CableComponent->SetupAttachment(this);
+
+	CableComponent->SetRelativeLocation(FVector(0.f, 60.f, 10.f));
+	CableComponent->NumSegments = 1;
+	CableComponent->EndLocation = FVector(0, 1000.f, 0.f);
+	
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
 	HookDistance = 3000.0;
 }
@@ -35,6 +46,7 @@ void UTP_WeaponComponent::Fire(){
 		if(actorHit) {
 			Character->SetIsGrapping(true);
 			Character->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+			CableComponent->SetVisibility(true);
 			GrabPoint = hit.Location;
 			DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 4.f, 0.f, 1.f);
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *hit.GetActor()->GetName());
@@ -60,6 +72,7 @@ void UTP_WeaponComponent::Fire(){
 void UTP_WeaponComponent::ReleaseFire() {
 	Character->SetIsGrapping(false);
 	Character->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+	CableComponent->SetVisibility(false);
 }
 
 
@@ -103,9 +116,15 @@ void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	FActorComponentTickFunction* ThisTickFunction) {
 	
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (Character == nullptr){
+		return;
+	}
 	if(Character->GetIsGrapping()) {
 		
 	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), *GetChildComponent(1)->GetName())
 }
 
 

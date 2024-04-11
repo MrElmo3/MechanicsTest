@@ -6,6 +6,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "TP_WeaponComponent.generated.h"
 
+class UCableComponent;
+
 class AMechanicsTestCharacter;
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -14,6 +16,9 @@ class MECHANICSTEST_API UTP_WeaponComponent : public USkeletalMeshComponent{
 
 public:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	UCableComponent* CableComponent;
+	
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	USoundBase* FireSound;
