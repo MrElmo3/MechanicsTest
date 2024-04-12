@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -79,12 +80,17 @@ void AMechanicsTestCharacter::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
+	float movementMultiplier = 1.f;
+
+	if(GetCharacterMovement()->GetMovementName() == "MOVE_Flying") {
+		movementMultiplier = 0.7f;
+	}
 
 	if (Controller != nullptr)
 	{
 		// add movement 
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
-		AddMovementInput(GetActorRightVector(), MovementVector.X);
+		AddMovementInput(GetActorRightVector(), MovementVector.X * movementMultiplier);
 	}
 }
 

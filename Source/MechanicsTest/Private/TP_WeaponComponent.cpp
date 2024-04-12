@@ -10,7 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
 #include "CableComponent.h"
-#include "ToolBuilderUtil.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values for this component's properties
@@ -26,7 +26,8 @@ UTP_WeaponComponent::UTP_WeaponComponent(){
 	CableComponent->EndLocation = FVector(0, 1000.f, 0.f);
 	
 	MuzzleOffset = FVector(100.0f, 0.0f, 10.0f);
-	HookDistance = 3000.0;
+	HookDistance = 3000.f;
+	HookForce = 250000.f;
 }
 
 
@@ -37,19 +38,17 @@ void UTP_WeaponComponent::Fire(){
 
 	// Try and shoot the hook
 	if(GetWorld()) {
-		FVector offset = Character->GetFirstPersonCameraComponent()->GetForwardVector() * 55.f;
+		FVector offset = Character->GetFirstPersonCameraComponent()->GetForwardVector() * 70.f;
 		FVector start = Character->GetFirstPersonCameraComponent()->GetComponentLocation() + offset;
 		FVector end = start + (Character->GetFirstPersonCameraComponent()->GetForwardVector() * HookDistance);
 		FHitResult hit;
 		bool actorHit = GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Pawn);
 
 		if(actorHit) {
-			Character->SetIsGrapping(true);
 			Character->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 			CableComponent->SetVisibility(true);
 			GrabPoint = hit.Location;
-			DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 4.f, 0.f, 1.f);
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *hit.GetActor()->GetName());
+			Character->SetIsGrapping(true);
 		}
 	}
 	
@@ -121,7 +120,11 @@ void UTP_WeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		return;
 	}
 	if(Character->GetIsGrapping()) {
-		
+		CableComponent->EndLocation =
+			UKismetMathLibrary::InverseTransformLocation(GetComponentTransform(), GrabPoint);
+		FVector forceDirection = GrabPoint - Character->GetActorLocation();
+		forceDirection.Normalize();
+		Character->GetCharacterMovement()->AddForce(forceDirection * HookForce);
 	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), *GetChildComponent(1)->GetName())

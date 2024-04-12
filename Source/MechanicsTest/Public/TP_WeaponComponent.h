@@ -48,6 +48,9 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Weapon")
 	FVector GrabPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon")
+	float HookForce;
 	
 public:
 
