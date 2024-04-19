@@ -42,6 +42,9 @@ class AMechanicsTestCharacter : public ACharacter{
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* DashAction;
 	
 private:
 	/** Is Grap? */
@@ -55,6 +58,21 @@ private:
 	/** Bool for AnimBP to switch to another animation set */
 	UPROPERTY()
 	bool bHasRifle;
+
+	UPROPERTY()
+	bool bCanDash;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dash", meta = (AllowPrivateAccess = "true"))
+	float dashVelocity;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Dash", meta = (AllowPrivateAccess = "true"))
+	int dashCountTap;
+
+	UPROPERTY()
+	FTimerHandle dashTapTimer;
+	
+	UPROPERTY()
+	FTimerHandle dashRestoreTimer;
 
 public:
 	AMechanicsTestCharacter();
@@ -70,6 +88,12 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	void Dash(const FInputActionValue& Value);
+
+	void ResetDashCounter();
+	
+	void RestoreDash();
 
 protected:
 	

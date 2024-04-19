@@ -11,7 +11,6 @@
 
 //////////////////////////////////////////////////////////////////////////
 // AMechanicsTestCharacter
-
 AMechanicsTestCharacter::AMechanicsTestCharacter(){
 	
 	// Character doesnt have a rifle at start
@@ -38,46 +37,66 @@ AMechanicsTestCharacter::AMechanicsTestCharacter(){
 	bCanGrap = false;
 	bIsGrapping = false;
 	
+	bCanDash = true;
+	dashVelocity = 100.f;
+	dashCountTap = false;
 }
 
-void AMechanicsTestCharacter::BeginPlay()
-{
+
+void AMechanicsTestCharacter::BeginPlay(){
 	// Call the base class  
 	Super::BeginPlay();
 
 	//Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller)){
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
+			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer())){
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-
 }
 
-//////////////////////////////////////////////////////////////////////////// Input
 
-void AMechanicsTestCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
-{
+void AMechanicsTestCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent){
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
-	{
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)){
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(
+			JumpAction,
+			ETriggerEvent::Triggered,
+			this,
+			&ACharacter::Jump);
+		EnhancedInputComponent->BindAction(
+			JumpAction,
+			ETriggerEvent::Completed,
+			this,
+			&ACharacter::StopJumping);
 
 		//Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMechanicsTestCharacter::Move);
+		EnhancedInputComponent->BindAction(
+			MoveAction,
+			ETriggerEvent::Triggered,
+			this,
+			&AMechanicsTestCharacter::Move);
 
 		//Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMechanicsTestCharacter::Look);
+		EnhancedInputComponent->BindAction(
+			LookAction, 
+			ETriggerEvent::Triggered,
+			this,
+			&AMechanicsTestCharacter::Look);
+
+		//Dashing
+		EnhancedInputComponent->BindAction(
+			DashAction,
+			ETriggerEvent::Started,
+			this,
+			&AMechanicsTestCharacter::Dash);
 	}
 }
 
 
-void AMechanicsTestCharacter::Move(const FInputActionValue& Value)
-{
+void AMechanicsTestCharacter::Move(const FInputActionValue& Value){
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 	float movementMultiplier = 1.f;
@@ -86,25 +105,62 @@ void AMechanicsTestCharacter::Move(const FInputActionValue& Value)
 		movementMultiplier = 0.7f;
 	}
 
-	if (Controller != nullptr)
-	{
+	if (Controller != nullptr){
 		// add movement 
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
 		AddMovementInput(GetActorRightVector(), MovementVector.X * movementMultiplier);
 	}
 }
 
-void AMechanicsTestCharacter::Look(const FInputActionValue& Value)
-{
+
+void AMechanicsTestCharacter::Look(const FInputActionValue& Value){
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
-	{
+	if (Controller != nullptr){
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+
+void AMechanicsTestCharacter::Dash(const FInputActionValue& Value) {
+	float direction = Value.Get<float>();
+
+	if(Controller != nullptr && bCanDash) {
+		dashCountTap+=direction;
+		
+		if(FMath::Abs(dashCountTap) >= 2) {
+			UE_LOG(LogTemp, Warning, TEXT("Dash!"));
+			FVector launchVelocity = GetActorRightVector() * dashVelocity * direction * 10 ;
+			LaunchCharacter(launchVelocity, false, false);
+			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+
+			bCanDash = false;
+			GetWorldTimerManager().SetTimer(
+				dashRestoreTimer,
+				this,
+				&AMechanicsTestCharacter::RestoreDash,
+				2.f);
+		}
+		
+		GetWorldTimerManager().SetTimer(
+			dashTapTimer,
+			this,
+			&AMechanicsTestCharacter::ResetDashCounter,
+			0.5f);
+	}
+}
+	
+
+void AMechanicsTestCharacter::ResetDashCounter() {
+	dashCountTap = 0;
+}
+
+void AMechanicsTestCharacter::RestoreDash() {
+	bCanDash = true;
+	UE_LOG(LogTemp, Warning, TEXT("Restore Dash!"))
 }
 
 void AMechanicsTestCharacter::SetHasRifle(bool bNewHasRifle){
