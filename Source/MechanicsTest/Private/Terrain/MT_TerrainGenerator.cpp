@@ -30,7 +30,13 @@ void AMT_TerrainGenerator::GenerateFloor(
 	class AActor* OtherActor,
 	class UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex) {
-
+	
+	FRotator rotator = FRotator(0.f);
+	FVector position = GetTransform().GetLocation();
+	// GetWorld()->SpawnActor<AMT_FloorTerrain>(
+	// 	//FloorToCreate,
+	// 	position,
+	// 	rotator);
 	// GetWorld()->SpawnActor(FloorToSpawn, new FVector(3000.f, 0.f, 0.f));
 }
 

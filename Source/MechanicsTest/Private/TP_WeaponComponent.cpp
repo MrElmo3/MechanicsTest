@@ -44,7 +44,7 @@ void UTP_WeaponComponent::Fire(){
 		FHitResult hit;
 		bool actorHit = GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Pawn);
 
-		if(actorHit) {
+		if(actorHit && hit.GetActor() != Character) {
 			Character->GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 			CableComponent->SetVisibility(true);
 			GrabPoint = hit.Location;

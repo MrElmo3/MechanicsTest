@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MT_FloorTerrain.h"
 #include "Components/BoxComponent.h"
 #include "GameFramework/Actor.h"
 #include "MT_TerrainGenerator.generated.h"
@@ -18,7 +19,10 @@ class MECHANICSTEST_API AMT_TerrainGenerator : public AActor {
 	// TSubclassOf<AActor> FloorToSpawn; 
 	
 public:
-	// Sets default values for this actor's properties
+
+	// UPROPERTY(EditDefaultsOnly, Category = "Generation")
+	//TSubclassOf<AMT_FloorTerrain> FloorToCreate;
+	
 	AMT_TerrainGenerator();
 
 protected:
